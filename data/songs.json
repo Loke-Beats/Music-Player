@@ -25,5 +25,14 @@
         "genre": "Rock",
         "file_path": null,
         "created_at": "2025-05-20T05:55:14.505211"
+    },
+    {
+        "id": 4,
+        "title": "Jhol",
+        "album_id": 2,
+        "duration": 240,
+        "genre": "Pop",
+        "file_path": "uploads/songs/20250520060312_Jhol.mp3",
+        "created_at": "2025-05-20T06:03:12.399277"
     }
 ]
