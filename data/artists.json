@@ -1,1 +1,9 @@
-[]
+[
+    {
+        "id": 1,
+        "name": "Ullas",
+        "genre": "Pop",
+        "bio": "He is a Pop Singer",
+        "created_at": "2025-05-20T07:04:22.901951"
+    }
+]
