@@ -16,22 +16,20 @@
         <div class="card h-100">
             <div class="card-body">
                 <h5 class="card-title">{{ playlist.title }}</h5>
-                <p class="card-text">
-                    <small class="text-muted">Created: {{ playlist.created_at.strftime('%Y-%m-%d') }}</small>
+                <p class="card-text text-muted">
+                    <i class="fas fa-music me-2"></i>{{ playlist.song_count }} songs
                 </p>
-                <p class="card-text">
-                    <span class="badge bg-secondary">{{ playlist.songs|length }} songs</span>
-                </p>
+                <a href="{{ url_for('view_playlist', playlist_id=playlist.id) }}" class="btn btn-outline-primary">View Playlist</a>
             </div>
-            <div class="card-footer">
-                <a href="{{ url_for('view_playlist', playlist_id=playlist.id) }}" class="btn btn-outline-primary btn-sm">View Playlist</a>
+            <div class="card-footer text-muted">
+                Created on {{ playlist.created_at.split('T')[0] if playlist.created_at else 'Unknown' }}
             </div>
         </div>
     </div>
     {% else %}
     <div class="col-12">
         <div class="alert alert-info">
-            You haven't created any playlists yet. <a href="{{ url_for('create_playlist') }}">Create one now</a>!
+            You don't have any playlists yet. <a href="{{ url_for('create_playlist') }}">Create your first playlist</a>
         </div>
     </div>
     {% endfor %}

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ playlist.title }}{% endblock %}
+{% block title %}{{ playlist.title }} - Playlist{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -10,54 +10,73 @@
             <i class="fas fa-plus me-2"></i>Add Songs
         </a>
         <a href="{{ url_for('view_playlists') }}" class="btn btn-outline-secondary ms-2">
-            <i class="fas fa-arrow-left me-2"></i>Back to Playlists
+            <i class="fas fa-arrow-left me-2"></i>Back to My Playlists
         </a>
     </div>
 </div>
 
-{% if playlist.songs %}
-<div class="card mb-4">
-    <div class="card-header bg-dark text-white">
-        <div class="row">
-            <div class="col-1">#</div>
-            <div class="col-4">Title</div>
-            <div class="col-3">Artist</div>
-            <div class="col-2">Album</div>
-            <div class="col-1">Duration</div>
-            <div class="col-1">Actions</div>
+{% if songs %}
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Title</th>
+                        <th>Artist</th>
+                        <th>Album</th>
+                        <th>Duration</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for song in songs %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ song.title }}</td>
+                        <td>
+                            {% if song.artist and song.artist.name %}
+                                {{ song.artist.name }}
+                            {% else %}
+                                Unknown
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if song.album and song.album.title %}
+                                {{ song.album.title }}
+                            {% else %}
+                                Unknown
+                            {% endif %}
+                        </td>
+                        <td>{{ format_duration(song.duration) }}</td>
+                        <td>
+                            <div class="d-flex">
+                                {% if song.file_path %}
+                                <button class="btn btn-sm btn-outline-primary me-2 play-song-btn" 
+                                        data-id="{{ song.id }}" 
+                                        data-title="{{ song.title }}"
+                                        data-src="{{ url_for('uploaded_file', filename=song.file_path.split('/')[-1]) }}">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                {% endif %}
+                                <a href="{{ url_for('remove_song_from_playlist', playlist_id=playlist.id, song_id=song.id) }}" 
+                                   class="btn btn-sm btn-outline-danger"
+                                   onclick="return confirm('Are you sure you want to remove this song from the playlist?')">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
-    <ul class="list-group list-group-flush">
-        {% for song in playlist.songs %}
-        <li class="list-group-item">
-            <div class="row align-items-center">
-                <div class="col-1">{{ loop.index }}</div>
-                <div class="col-4">{{ song.title }}</div>
-                <div class="col-3">{{ song.album.artist.name }}</div>
-                <div class="col-2">{{ song.album.title }}</div>
-                <div class="col-1">{{ format_duration(song.duration) }}</div>
-                <div class="col-1">
-                    <div class="btn-group">
-                        <button class="btn btn-sm btn-outline-primary rounded-circle play-song-btn" 
-                                data-id="{{ song.id }}" 
-                                data-title="{{ song.title }}"
-                                data-src="{{ url_for('uploaded_file', filename=song.file_path.split('/')[-1]) if song.file_path else '#' }}">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <a href="{{ url_for('remove_song_from_playlist', playlist_id=playlist.id, song_id=song.id) }}" 
-                           class="btn btn-sm btn-outline-danger rounded-circle ms-1">
-                            <i class="fas fa-times"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </li>
-        {% endfor %}
-    </ul>
 </div>
 {% else %}
 <div class="alert alert-info">
-    This playlist is empty. <a href="{{ url_for('add_song_to_playlist', playlist_id=playlist.id) }}">Add some songs</a>!
+    This playlist is empty. <a href="{{ url_for('add_song_to_playlist', playlist_id=playlist.id) }}">Add songs to your playlist</a>
 </div>
 {% endif %}
 {% endblock %}

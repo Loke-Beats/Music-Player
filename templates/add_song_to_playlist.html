@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Add Songs to {{ playlist.title }}{% endblock %}
+{% block title %}Add Songs to Playlist{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -12,39 +12,75 @@
 
 {% if songs %}
 <div class="card">
-    <div class="card-header bg-dark text-white">
-        <div class="row">
-            <div class="col-5">Title</div>
-            <div class="col-3">Artist</div>
-            <div class="col-2">Album</div>
-            <div class="col-1">Duration</div>
-            <div class="col-1">Actions</div>
-        </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Select</th>
+                            <th>Title</th>
+                            <th>Artist</th>
+                            <th>Album</th>
+                            <th>Genre</th>
+                            <th>Duration</th>
+                            <th>Preview</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for song in songs %}
+                        <tr>
+                            <td>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="song_id" value="{{ song.id }}" id="song-{{ song.id }}" required>
+                                </div>
+                            </td>
+                            <td>{{ song.title }}</td>
+                            <td>
+                                {% if song.artist and song.artist.name %}
+                                    {{ song.artist.name }}
+                                {% else %}
+                                    Unknown
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if song.album and song.album.title %}
+                                    {{ song.album.title }}
+                                {% else %}
+                                    Unknown
+                                {% endif %}
+                            </td>
+                            <td>{{ song.genre }}</td>
+                            <td>{{ format_duration(song.duration) }}</td>
+                            <td>
+                                {% if song.file_path %}
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-circle play-song-btn" 
+                                        data-id="{{ song.id }}" 
+                                        data-title="{{ song.title }}"
+                                        data-src="{{ url_for('uploaded_file', filename=song.file_path.split('/')[-1]) }}">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">No file</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-3 d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary">Add Selected Song to Playlist</button>
+            </div>
+        </form>
     </div>
-    <ul class="list-group list-group-flush">
-        {% for song in songs %}
-        <li class="list-group-item">
-            <form method="POST">
-                <input type="hidden" name="song_id" value="{{ song.id }}">
-                <div class="row align-items-center">
-                    <div class="col-5">{{ song.title }}</div>
-                    <div class="col-3">{{ song.album.artist.name }}</div>
-                    <div class="col-2">{{ song.album.title }}</div>
-                    <div class="col-1">{{ format_duration(song.duration) }}</div>
-                    <div class="col-1">
-                        <button type="submit" class="btn btn-sm btn-outline-success rounded-circle">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </li>
-        {% endfor %}
-    </ul>
 </div>
 {% else %}
 <div class="alert alert-info">
-    No songs available to add to this playlist.
+    No songs available to add to this playlist. All songs are already in the playlist or there are no songs in the library.
+    {% if session.get('is_admin') %}
+    <a href="{{ url_for('add_song') }}">Add a new song</a>
+    {% endif %}
 </div>
 {% endif %}
 {% endblock %}

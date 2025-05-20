@@ -21,7 +21,8 @@
                         <select class="form-select" id="album_id" name="album_id" required>
                             <option value="" selected disabled>Select Album</option>
                             {% for album in albums %}
-                            <option value="{{ album.id }}">{{ album.title }} ({{ album.artist.name }})</option>
+                            <option value="{{ album.id }}">{{ album.title }} 
+                                {% if album.artist_name %}({{ album.artist_name }}){% endif %}</option>
                             {% endfor %}
                         </select>
                     </div>
