@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Songs to {{ playlist.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Add Songs to "{{ playlist.title }}"</h1>
+    <a href="{{ url_for('view_playlist', playlist_id=playlist.id) }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Playlist
+    </a>
+</div>
+
+{% if songs %}
+<div class="card">
+    <div class="card-header bg-dark text-white">
+        <div class="row">
+            <div class="col-5">Title</div>
+            <div class="col-3">Artist</div>
+            <div class="col-2">Album</div>
+            <div class="col-1">Duration</div>
+            <div class="col-1">Actions</div>
+        </div>
+    </div>
+    <ul class="list-group list-group-flush">
+        {% for song in songs %}
+        <li class="list-group-item">
+            <form method="POST">
+                <input type="hidden" name="song_id" value="{{ song.id }}">
+                <div class="row align-items-center">
+                    <div class="col-5">{{ song.title }}</div>
+                    <div class="col-3">{{ song.album.artist.name }}</div>
+                    <div class="col-2">{{ song.album.title }}</div>
+                    <div class="col-1">{{ format_duration(song.duration) }}</div>
+                    <div class="col-1">
+                        <button type="submit" class="btn btn-sm btn-outline-success rounded-circle">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% else %}
+<div class="alert alert-info">
+    No songs available to add to this playlist.
+</div>
+{% endif %}
+{% endblock %}

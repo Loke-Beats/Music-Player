@@ -1,11 +1,11 @@
 import os
-import sqlite3
+import time
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, relationship
 
 # Create base class for SQLAlchemy models
 class Base(DeclarativeBase):
@@ -13,10 +13,17 @@ class Base(DeclarativeBase):
 
 # Initialize Flask app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "your-secret-key")
+app.secret_key = os.environ.get("SESSION_SECRET", "your-secret-key-for-music-player")
 
-# Configure database
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///music_player.db")
+# Configure database connection
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if DATABASE_URL:
+    # Use PostgreSQL in production
+    app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+else:
+    # Use SQLite in development
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///music_player.db"
+
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Configure upload folder for song files
@@ -359,43 +366,46 @@ def remove_song_from_playlist(playlist_id, song_id):
     
     return redirect(url_for('view_playlist', playlist_id=playlist_id))
 
-# Create database and admin user if not exists
-@app.before_first_request
+# Create database initialization function
 def create_tables():
-    db.create_all()
-    
-    # Check if admin user exists, if not, create one
-    admin_user = User.query.filter_by(username='admin').first()
-    if not admin_user:
-        admin_user = User(
-            username='admin',
-            email='admin@example.com',
-            password=generate_password_hash('admin'),
-            is_admin=True
-        )
-        db.session.add(admin_user)
+    with app.app_context():
+        db.create_all()
         
-        # Add sample data
-        artist1 = Artist(name='Queen', genre='Rock', bio='British rock band formed in 1970')
-        artist2 = Artist(name='Michael Jackson', genre='Pop', bio='King of Pop')
-        artist3 = Artist(name='The Beatles', genre='Rock', bio='English rock band formed in 1960')
-        
-        db.session.add_all([artist1, artist2, artist3])
-        db.session.commit()
-        
-        album1 = Album(title='A Night at the Opera', artist_id=artist1.id, release_date=datetime.strptime('1975-11-21', '%Y-%m-%d').date(), genre='Rock')
-        album2 = Album(title='Thriller', artist_id=artist2.id, release_date=datetime.strptime('1982-11-30', '%Y-%m-%d').date(), genre='Pop')
-        album3 = Album(title='Abbey Road', artist_id=artist3.id, release_date=datetime.strptime('1969-09-26', '%Y-%m-%d').date(), genre='Rock')
-        
-        db.session.add_all([album1, album2, album3])
-        db.session.commit()
-        
-        song1 = Song(title='Bohemian Rhapsody', album_id=album1.id, duration=354, genre='Rock')
-        song2 = Song(title='Thriller', album_id=album2.id, duration=357, genre='Pop')
-        song3 = Song(title='Come Together', album_id=album3.id, duration=259, genre='Rock')
-        
-        db.session.add_all([song1, song2, song3])
-        db.session.commit()
+        # Check if admin user exists, if not, create one
+        admin_user = User.query.filter_by(username='admin').first()
+        if not admin_user:
+            admin_user = User(
+                username='admin',
+                email='admin@example.com',
+                password=generate_password_hash('admin'),
+                is_admin=True
+            )
+            db.session.add(admin_user)
+            
+            # Add sample data
+            artist1 = Artist(name='Queen', genre='Rock', bio='British rock band formed in 1970')
+            artist2 = Artist(name='Michael Jackson', genre='Pop', bio='King of Pop')
+            artist3 = Artist(name='The Beatles', genre='Rock', bio='English rock band formed in 1960')
+            
+            db.session.add_all([artist1, artist2, artist3])
+            db.session.commit()
+            
+            album1 = Album(title='A Night at the Opera', artist_id=artist1.id, release_date=datetime.strptime('1975-11-21', '%Y-%m-%d').date(), genre='Rock')
+            album2 = Album(title='Thriller', artist_id=artist2.id, release_date=datetime.strptime('1982-11-30', '%Y-%m-%d').date(), genre='Pop')
+            album3 = Album(title='Abbey Road', artist_id=artist3.id, release_date=datetime.strptime('1969-09-26', '%Y-%m-%d').date(), genre='Rock')
+            
+            db.session.add_all([album1, album2, album3])
+            db.session.commit()
+            
+            song1 = Song(title='Bohemian Rhapsody', album_id=album1.id, duration=354, genre='Rock')
+            song2 = Song(title='Thriller', album_id=album2.id, duration=357, genre='Pop')
+            song3 = Song(title='Come Together', album_id=album3.id, duration=259, genre='Rock')
+            
+            db.session.add_all([song1, song2, song3])
+            db.session.commit()
+
+# Initialize the database
+create_tables()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

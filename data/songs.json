@@ -1,0 +1,29 @@
+[
+    {
+        "id": 1,
+        "title": "Bohemian Rhapsody",
+        "album_id": 1,
+        "duration": 354,
+        "genre": "Rock",
+        "file_path": null,
+        "created_at": "2025-05-20T05:55:14.505200"
+    },
+    {
+        "id": 2,
+        "title": "Thriller",
+        "album_id": 2,
+        "duration": 357,
+        "genre": "Pop",
+        "file_path": null,
+        "created_at": "2025-05-20T05:55:14.505208"
+    },
+    {
+        "id": 3,
+        "title": "Come Together",
+        "album_id": 3,
+        "duration": 259,
+        "genre": "Rock",
+        "file_path": null,
+        "created_at": "2025-05-20T05:55:14.505211"
+    }
+]

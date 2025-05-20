@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "name": "Queen",
+        "genre": "Rock",
+        "bio": "British rock band formed in 1970",
+        "created_at": "2025-05-20T05:55:14.504675"
+    },
+    {
+        "id": 2,
+        "name": "Michael Jackson",
+        "genre": "Pop",
+        "bio": "King of Pop",
+        "created_at": "2025-05-20T05:55:14.504683"
+    },
+    {
+        "id": 3,
+        "name": "The Beatles",
+        "genre": "Rock",
+        "bio": "English rock band formed in 1960",
+        "created_at": "2025-05-20T05:55:14.504685"
+    }
+]

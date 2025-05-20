@@ -1,0 +1,1 @@
+[{"id": 1, "username": "admin", "password": "scrypt:32768:8:1$AKv3uTv3jcWJUbMc$a297f26d2043fecd2df69916b0275484c9e464b87e603981df1eb30fa11fda7af33cd81bfccceb849787a5bab76802716d121f40547c8dee19d79f2f842de6a8", "email": "admin@example.com", "is_admin": true}]

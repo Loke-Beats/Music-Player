@@ -52,8 +52,7 @@
                                 <th>ID</th>
                                 <th>Name</th>
                                 <th>Genre</th>
-                                <th>Albums</th>
-                                <th>Actions</th>
+                                <th>Biography</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -62,18 +61,7 @@
                                 <td>{{ artist.id }}</td>
                                 <td>{{ artist.name }}</td>
                                 <td>{{ artist.genre }}</td>
-                                <td>{{ artist.albums|length }}</td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                                            Actions
-                                        </button>
-                                        <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item" href="#">Edit</a></li>
-                                            <li><a class="dropdown-item" href="#">Delete</a></li>
-                                        </ul>
-                                    </div>
-                                </td>
+                                <td>{{ artist.bio|truncate(100) }}</td>
                             </tr>
                             {% else %}
                             <tr>
@@ -105,8 +93,6 @@
                                 <th>Artist</th>
                                 <th>Genre</th>
                                 <th>Release Date</th>
-                                <th>Songs</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -114,25 +100,19 @@
                             <tr>
                                 <td>{{ album.id }}</td>
                                 <td>{{ album.title }}</td>
-                                <td>{{ album.artist.name }}</td>
+                                <td>
+                                    {% for artist in artists %}
+                                        {% if artist.id == album.artist_id %}
+                                            {{ artist.name }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
                                 <td>{{ album.genre }}</td>
                                 <td>{{ album.release_date }}</td>
-                                <td>{{ album.songs|length }}</td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                                            Actions
-                                        </button>
-                                        <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item" href="#">Edit</a></li>
-                                            <li><a class="dropdown-item" href="#">Delete</a></li>
-                                        </ul>
-                                    </div>
-                                </td>
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="7" class="text-center">No albums found</td>
+                                <td colspan="5" class="text-center">No albums found</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -162,7 +142,7 @@
                                 <th>Genre</th>
                                 <th>Duration</th>
                                 <th>File</th>
-                                <th>Actions</th>
+                                <th>Play</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -170,29 +150,34 @@
                             <tr>
                                 <td>{{ song.id }}</td>
                                 <td>{{ song.title }}</td>
-                                <td>{{ song.album.title }}</td>
-                                <td>{{ song.album.artist.name }}</td>
+                                <td>
+                                    {% if song.album and song.album.title %}
+                                        {{ song.album.title }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if song.artist and song.artist.name %}
+                                        {{ song.artist.name }}
+                                    {% endif %}
+                                </td>
                                 <td>{{ song.genre }}</td>
                                 <td>{{ format_duration(song.duration) }}</td>
                                 <td>
                                     {% if song.file_path %}
-                                    <a href="{{ url_for('uploaded_file', filename=song.file_path.split('/')[-1]) }}" target="_blank" class="btn btn-sm btn-outline-success">
-                                        <i class="fas fa-file-audio"></i>
-                                    </a>
+                                    <span class="badge bg-success">Uploaded</span>
                                     {% else %}
                                     <span class="badge bg-warning text-dark">No file</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                                            Actions
-                                        </button>
-                                        <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item" href="#">Edit</a></li>
-                                            <li><a class="dropdown-item" href="#">Delete</a></li>
-                                        </ul>
-                                    </div>
+                                    {% if song.file_path %}
+                                    <button class="btn btn-sm btn-outline-primary rounded-circle play-song-btn" 
+                                            data-id="{{ song.id }}" 
+                                            data-title="{{ song.title }}"
+                                            data-src="{{ url_for('uploaded_file', filename=song.file_path.split('/')[-1]) }}">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% else %}

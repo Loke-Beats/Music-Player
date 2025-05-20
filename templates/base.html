@@ -43,6 +43,18 @@
         body {
             padding-bottom: 80px;
         }
+        .album-img {
+            background-color: var(--bs-dark);
+            width: 100%;
+            aspect-ratio: 1/1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .album-img i {
+            font-size: 3rem;
+            opacity: 0.5;
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -161,17 +173,30 @@
             
             // Create songs array from play buttons
             playButtons.forEach((btn, index) => {
-                const songData = {
-                    id: btn.dataset.id,
-                    title: btn.dataset.title,
-                    src: btn.dataset.src
-                };
-                songs.push(songData);
+                const songId = btn.dataset.id;
+                const songTitle = btn.dataset.title;
+                const songSrc = btn.dataset.src;
+                
+                // Only add songs with valid sources
+                if (songSrc && songSrc !== '#') {
+                    songs.push({
+                        id: songId,
+                        title: songTitle,
+                        src: songSrc
+                    });
+                }
                 
                 // Add click event to play buttons
                 btn.addEventListener('click', function() {
-                    currentSongIndex = index;
-                    loadAndPlaySong(songs[currentSongIndex]);
+                    if (songSrc && songSrc !== '#') {
+                        const songIndex = songs.findIndex(s => s.id === songId);
+                        if (songIndex !== -1) {
+                            currentSongIndex = songIndex;
+                            loadAndPlaySong(songs[currentSongIndex]);
+                        }
+                    } else {
+                        alert('This song has no audio file.');
+                    }
                 });
             });
             
