@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Music Player - Home{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="display-5 mb-4">Welcome to Music Player</h1>
+                <p class="lead">Discover music, create playlists, and enjoy your favorite songs.</p>
+                {% if not session.get('user_id') %}
+                <div class="mt-4">
+                    <a href="{{ url_for('login') }}" class="btn btn-primary me-2">Login</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-outline-primary">Register</a>
+                </div>
+                {% else %}
+                <div class="mt-4">
+                    <a href="{{ url_for('view_playlists') }}" class="btn btn-primary">My Playlists</a>
+                    {% if session.get('is_admin') %}
+                    <a href="{{ url_for('admin') }}" class="btn btn-outline-primary ms-2">Admin Panel</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 class="mb-4">All Songs</h2>
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for song in songs %}
+    <div class="col">
+        <div class="card h-100 song-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h5 class="card-title">{{ song.title }}</h5>
+                    <button class="btn btn-sm btn-outline-primary rounded-circle play-song-btn" 
+                            data-id="{{ song.id }}" 
+                            data-title="{{ song.title }}"
+                            data-src="{{ url_for('uploaded_file', filename=song.file_path.split('/')[-1]) if song.file_path else '#' }}">
+                        <i class="fas fa-play"></i>
+                    </button>
+                </div>
+                <h6 class="card-subtitle mb-2 text-muted">{{ song.album.artist.name }} - {{ song.album.title }}</h6>
+                <p class="card-text">
+                    <span class="badge bg-secondary me-2">{{ song.genre }}</span>
+                    <span class="badge bg-light text-dark">{{ format_duration(song.duration) }}</span>
+                </p>
+                {% if session.get('user_id') %}
+                <div class="dropdown mt-2">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        Add to Playlist
+                    </button>
+                    <ul class="dropdown-menu">
+                        {% if session.get('playlists', []) %}
+                            {% for playlist in session.get('playlists', []) %}
+                            <li><a class="dropdown-item" href="{{ url_for('add_song_to_playlist', playlist_id=playlist.id, song_id=song.id) }}">{{ playlist.title }}</a></li>
+                            {% endfor %}
+                        {% else %}
+                            <li><a class="dropdown-item" href="{{ url_for('create_playlist') }}">Create a Playlist</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            No songs available. {% if session.get('is_admin') %}<a href="{{ url_for('add_song') }}">Add a song</a>{% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

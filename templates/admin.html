@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block title %}Music Player - Admin Panel{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Admin Panel</h1>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Manage Artists</h5>
+                <p class="card-text">Add, edit, or delete artists in your music library.</p>
+                <a href="{{ url_for('add_artist') }}" class="btn btn-primary">Add New Artist</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Manage Albums</h5>
+                <p class="card-text">Add, edit, or delete albums in your music library.</p>
+                <a href="{{ url_for('add_album') }}" class="btn btn-primary">Add New Album</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Manage Songs</h5>
+                <p class="card-text">Add, edit, or delete songs in your music library.</p>
+                <a href="{{ url_for('add_song') }}" class="btn btn-primary">Add New Song</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Artists -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Artists</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Genre</th>
+                                <th>Albums</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for artist in artists %}
+                            <tr>
+                                <td>{{ artist.id }}</td>
+                                <td>{{ artist.name }}</td>
+                                <td>{{ artist.genre }}</td>
+                                <td>{{ artist.albums|length }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                            Actions
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#">Edit</a></li>
+                                            <li><a class="dropdown-item" href="#">Delete</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center">No artists found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Albums -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Albums</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Artist</th>
+                                <th>Genre</th>
+                                <th>Release Date</th>
+                                <th>Songs</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for album in albums %}
+                            <tr>
+                                <td>{{ album.id }}</td>
+                                <td>{{ album.title }}</td>
+                                <td>{{ album.artist.name }}</td>
+                                <td>{{ album.genre }}</td>
+                                <td>{{ album.release_date }}</td>
+                                <td>{{ album.songs|length }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                            Actions
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#">Edit</a></li>
+                                            <li><a class="dropdown-item" href="#">Delete</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center">No albums found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Songs -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Songs</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Album</th>
+                                <th>Artist</th>
+                                <th>Genre</th>
+                                <th>Duration</th>
+                                <th>File</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for song in songs %}
+                            <tr>
+                                <td>{{ song.id }}</td>
+                                <td>{{ song.title }}</td>
+                                <td>{{ song.album.title }}</td>
+                                <td>{{ song.album.artist.name }}</td>
+                                <td>{{ song.genre }}</td>
+                                <td>{{ format_duration(song.duration) }}</td>
+                                <td>
+                                    {% if song.file_path %}
+                                    <a href="{{ url_for('uploaded_file', filename=song.file_path.split('/')[-1]) }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                        <i class="fas fa-file-audio"></i>
+                                    </a>
+                                    {% else %}
+                                    <span class="badge bg-warning text-dark">No file</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                            Actions
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#">Edit</a></li>
+                                            <li><a class="dropdown-item" href="#">Delete</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center">No songs found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

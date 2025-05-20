@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Music Player{% endblock %}</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .song-card {
+            transition: transform 0.3s;
+        }
+        .song-card:hover {
+            transform: translateY(-5px);
+        }
+        .player-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--bs-dark);
+            z-index: 1000;
+            padding: 10px 0;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .player-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+        .progress-container {
+            flex-grow: 1;
+            max-width: 400px;
+        }
+        .player-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--bs-light);
+            cursor: pointer;
+        }
+        body {
+            padding-bottom: 80px;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-music me-2"></i>Music Player
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                    </li>
+                    {% if session.get('user_id') %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('view_playlists') }}">My Playlists</a>
+                    </li>
+                    {% endif %}
+                    {% if session.get('is_admin') %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin') }}">Admin</a>
+                    </li>
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav">
+                    {% if session.get('user_id') %}
+                    <li class="nav-item">
+                        <span class="nav-link">Welcome, {{ session.get('username') }}</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container my-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Music Player (fixed at bottom) -->
+    <div class="player-container">
+        <div class="container">
+            <div class="player-controls">
+                <button id="prev-btn" class="player-btn">
+                    <i class="fas fa-step-backward"></i>
+                </button>
+                <button id="play-btn" class="player-btn">
+                    <i class="fas fa-play"></i>
+                </button>
+                <button id="next-btn" class="player-btn">
+                    <i class="fas fa-step-forward"></i>
+                </button>
+                <div class="progress-container">
+                    <div class="progress" style="height: 5px;">
+                        <div id="song-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-1">
+                        <small id="current-time">0:00</small>
+                        <small id="song-title">No song playing</small>
+                        <small id="total-time">0:00</small>
+                    </div>
+                </div>
+                <div class="volume-container">
+                    <i class="fas fa-volume-up me-2"></i>
+                    <input type="range" class="form-range" id="volume-control" min="0" max="1" step="0.1" value="0.7" style="width: 80px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Player elements
+            const playBtn = document.getElementById('play-btn');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const songProgress = document.getElementById('song-progress');
+            const currentTimeEl = document.getElementById('current-time');
+            const totalTimeEl = document.getElementById('total-time');
+            const songTitleEl = document.getElementById('song-title');
+            const volumeControl = document.getElementById('volume-control');
+            
+            // Audio element
+            const audioEl = new Audio();
+            let isPlaying = false;
+            let currentSongIndex = -1;
+            let songs = [];
+            
+            // Get all play buttons on the page
+            const playButtons = document.querySelectorAll('.play-song-btn');
+            
+            // Create songs array from play buttons
+            playButtons.forEach((btn, index) => {
+                const songData = {
+                    id: btn.dataset.id,
+                    title: btn.dataset.title,
+                    src: btn.dataset.src
+                };
+                songs.push(songData);
+                
+                // Add click event to play buttons
+                btn.addEventListener('click', function() {
+                    currentSongIndex = index;
+                    loadAndPlaySong(songs[currentSongIndex]);
+                });
+            });
+            
+            // Play/Pause button
+            playBtn.addEventListener('click', function() {
+                if (currentSongIndex === -1 && songs.length > 0) {
+                    // If no song is loaded, load the first one
+                    currentSongIndex = 0;
+                    loadAndPlaySong(songs[currentSongIndex]);
+                } else if (isPlaying) {
+                    audioEl.pause();
+                    playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                    isPlaying = false;
+                } else {
+                    audioEl.play();
+                    playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                    isPlaying = true;
+                }
+            });
+            
+            // Previous button
+            prevBtn.addEventListener('click', function() {
+                if (songs.length === 0 || currentSongIndex === -1) return;
+                
+                currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+                loadAndPlaySong(songs[currentSongIndex]);
+            });
+            
+            // Next button
+            nextBtn.addEventListener('click', function() {
+                if (songs.length === 0 || currentSongIndex === -1) return;
+                
+                currentSongIndex = (currentSongIndex + 1) % songs.length;
+                loadAndPlaySong(songs[currentSongIndex]);
+            });
+            
+            // Volume control
+            volumeControl.addEventListener('input', function() {
+                audioEl.volume = this.value;
+            });
+            
+            // Update progress
+            audioEl.addEventListener('timeupdate', function() {
+                const currentTime = audioEl.currentTime;
+                const duration = audioEl.duration || 1;
+                const progressPercent = (currentTime / duration) * 100;
+                
+                songProgress.style.width = `${progressPercent}%`;
+                
+                // Update time displays
+                currentTimeEl.textContent = formatTime(currentTime);
+                totalTimeEl.textContent = formatTime(duration);
+            });
+            
+            // When song ends, play next
+            audioEl.addEventListener('ended', function() {
+                if (songs.length === 0 || currentSongIndex === -1) return;
+                
+                currentSongIndex = (currentSongIndex + 1) % songs.length;
+                loadAndPlaySong(songs[currentSongIndex]);
+            });
+            
+            // Load and play a song
+            function loadAndPlaySong(song) {
+                if (!song || !song.src) {
+                    console.error('No song source found');
+                    return;
+                }
+                
+                audioEl.src = song.src;
+                audioEl.load();
+                audioEl.play();
+                
+                songTitleEl.textContent = song.title;
+                playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                isPlaying = true;
+                
+                // Highlight the active song in the UI
+                playButtons.forEach(btn => {
+                    if (btn.dataset.id === song.id) {
+                        btn.innerHTML = '<i class="fas fa-pause"></i>';
+                    } else {
+                        btn.innerHTML = '<i class="fas fa-play"></i>';
+                    }
+                });
+            }
+            
+            // Format time in minutes:seconds
+            function formatTime(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

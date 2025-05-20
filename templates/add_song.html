@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Add New Song{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">Add New Song</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Song Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="album_id" class="form-label">Album</label>
+                        <select class="form-select" id="album_id" name="album_id" required>
+                            <option value="" selected disabled>Select Album</option>
+                            {% for album in albums %}
+                            <option value="{{ album.id }}">{{ album.title }} ({{ album.artist.name }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="duration" class="form-label">Duration (seconds)</label>
+                        <input type="number" class="form-control" id="duration" name="duration" min="1" required>
+                        <small class="text-muted">Enter duration in seconds (e.g., 180 for 3:00)</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="genre" class="form-label">Genre</label>
+                        <input type="text" class="form-control" id="genre" name="genre">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="song_file" class="form-label">Song File</label>
+                        <input type="file" class="form-control" id="song_file" name="song_file" accept=".mp3,.wav,.ogg,.flac,.m4a">
+                        <small class="text-muted">Allowed formats: MP3, WAV, OGG, FLAC, M4A</small>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('admin') }}" class="btn btn-secondary me-md-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Add Song</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
