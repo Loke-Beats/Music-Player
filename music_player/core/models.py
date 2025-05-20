@@ -9,7 +9,7 @@ class Artist(models.Model):
     genre = models.CharField(max_length=100, blank=True)
     
     def __str__(self):
-        return self.name
+        return str(self.name)
     
     def get_absolute_url(self):
         return reverse('artist_detail', args=[str(self.artist_id)])
@@ -22,7 +22,7 @@ class Album(models.Model):
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name='albums')
     
     def __str__(self):
-        return self.title
+        return str(self.title)
     
     def get_absolute_url(self):
         return reverse('album_detail', args=[str(self.album_id)])
@@ -41,17 +41,21 @@ class Song(models.Model):
     release_date = models.DateField()
     drm_type = models.CharField(max_length=10, choices=DRM_TYPES, default='free')
     album = models.ForeignKey(Album, on_delete=models.CASCADE, related_name='songs')
+    song_file = models.FileField(upload_to='songs/', null=True, blank=True)
     
     def __str__(self):
-        return self.title
+        return str(self.title)
     
     def get_absolute_url(self):
         return reverse('song_detail', args=[str(self.song_id)])
     
     def duration_formatted(self):
-        minutes = self.duration // 60
-        seconds = self.duration % 60
+        minutes = int(self.duration) // 60
+        seconds = int(self.duration) % 60
         return f"{minutes}:{seconds:02d}"
+        
+    def has_song_file(self):
+        return bool(self.song_file)
 
 class Playlist(models.Model):
     playlist_id = models.AutoField(primary_key=True)
