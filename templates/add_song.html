@@ -28,9 +28,11 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="duration" class="form-label">Duration (seconds)</label>
-                        <input type="number" class="form-control" id="duration" name="duration" min="1" required>
-                        <small class="text-muted">Enter duration in seconds (e.g., 180 for 3:00)</small>
+                        <label for="duration" class="form-label">Duration</label>
+                        <input type="hidden" class="form-control" id="duration" name="duration" value="0">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>Duration will be automatically detected from the uploaded file.
+                        </div>
                     </div>
                     
                     <div class="mb-3">

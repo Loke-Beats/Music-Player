@@ -7,53 +7,140 @@
     <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .song-card {
-            transition: transform 0.3s;
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --accent-color: #f39c12;
+            --card-bg: #2d3436;
+            --hover-color: #34495e;
         }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+        
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .progress-bar {
+            background-color: var(--secondary-color);
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card-header {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .badge.bg-secondary {
+            background-color: var(--secondary-color) !important;
+        }
+        
+        .song-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
         .song-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            background-color: var(--hover-color);
         }
+        
         .player-container {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background-color: var(--bs-dark);
+            background-color: #1e272e;
             z-index: 1000;
             padding: 10px 0;
-            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
+        
         .player-controls {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 20px;
         }
+        
         .progress-container {
             flex-grow: 1;
             max-width: 400px;
         }
+        
         .player-btn {
             background: none;
             border: none;
             font-size: 1.5rem;
-            color: var(--bs-light);
+            color: var(--primary-color);
             cursor: pointer;
+            transition: color 0.2s, transform 0.2s;
         }
+        
+        .player-btn:hover {
+            color: var(--accent-color);
+            transform: scale(1.1);
+        }
+        
         body {
             padding-bottom: 80px;
+            background-color: #121212;
         }
+        
         .album-img {
-            background-color: var(--bs-dark);
+            background-color: var(--card-bg);
             width: 100%;
             aspect-ratio: 1/1;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 8px;
         }
+        
         .album-img i {
             font-size: 3rem;
             opacity: 0.5;
+            color: var(--accent-color);
+        }
+        
+        .navbar {
+            background-color: #1a1a1a !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .navbar-brand {
+            color: var(--accent-color) !important;
+            font-weight: bold;
+        }
+        
+        .table {
+            background-color: transparent;
+        }
+        
+        .table tr:hover {
+            background-color: var(--hover-color);
         }
     </style>
     {% block extra_css %}{% endblock %}

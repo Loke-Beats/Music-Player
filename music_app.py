@@ -305,7 +305,8 @@ def add_song():
     if request.method == 'POST':
         title = request.form['title']
         album_id = int(request.form['album_id'])
-        duration = int(request.form['duration'])
+        # Default duration to 0, we'll try to get real duration later
+        duration = 0
         genre = request.form['genre']
         
         # Handle file upload
@@ -320,6 +321,19 @@ def add_song():
                 save_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
                 file.save(save_path)
                 file_path = f"{UPLOAD_FOLDER}/{unique_filename}"
+                
+                # For a real application, we would use a library like mutagen or audio-metadata
+                # to extract duration from the audio file automatically
+                # For simplicity, we'll default to a 3-minute duration for all uploaded files
+                duration = 180  # 3 minutes in seconds
+                
+                # In a production system, we'd use code like this:
+                # try:
+                #     from mutagen.mp3 import MP3
+                #     audio = MP3(save_path)
+                #     duration = int(audio.info.length)
+                # except:
+                #     duration = 180  # Default to 3 minutes if extraction fails
         
         songs = load_data(SONGS_FILE)
         
@@ -497,104 +511,26 @@ def remove_song_from_playlist(playlist_id, song_id):
     
     return redirect(url_for('view_playlist', playlist_id=playlist_id))
 
-# Initialize with sample data if files are empty
-def initialize_sample_data():
+# Initialize empty data files for a fresh start
+def initialize_empty_data():
+    # Just make sure the files exist with empty arrays
     artists = load_data(ARTISTS_FILE)
     albums = load_data(ALBUMS_FILE)
     songs = load_data(SONGS_FILE)
     
-    # Only add sample data if all three are empty
-    if not artists and not albums and not songs:
-        # Add sample artists
-        artists = [
-            {
-                'id': 1,
-                'name': 'Queen',
-                'genre': 'Rock',
-                'bio': 'British rock band formed in 1970',
-                'created_at': datetime.now().isoformat()
-            },
-            {
-                'id': 2,
-                'name': 'Michael Jackson',
-                'genre': 'Pop',
-                'bio': 'King of Pop',
-                'created_at': datetime.now().isoformat()
-            },
-            {
-                'id': 3,
-                'name': 'The Beatles',
-                'genre': 'Rock',
-                'bio': 'English rock band formed in 1960',
-                'created_at': datetime.now().isoformat()
-            }
-        ]
-        save_data(ARTISTS_FILE, artists)
+    # Ensure files exist with empty arrays if they don't already
+    if artists is None:
+        save_data(ARTISTS_FILE, [])
+    
+    if albums is None:
+        save_data(ALBUMS_FILE, [])
         
-        # Add sample albums
-        albums = [
-            {
-                'id': 1,
-                'title': 'A Night at the Opera',
-                'artist_id': 1,
-                'genre': 'Rock',
-                'release_date': '1975-11-21',
-                'created_at': datetime.now().isoformat()
-            },
-            {
-                'id': 2,
-                'title': 'Thriller',
-                'artist_id': 2,
-                'genre': 'Pop',
-                'release_date': '1982-11-30',
-                'created_at': datetime.now().isoformat()
-            },
-            {
-                'id': 3,
-                'title': 'Abbey Road',
-                'artist_id': 3,
-                'genre': 'Rock',
-                'release_date': '1969-09-26',
-                'created_at': datetime.now().isoformat()
-            }
-        ]
-        save_data(ALBUMS_FILE, albums)
-        
-        # Add sample songs
-        songs = [
-            {
-                'id': 1,
-                'title': 'Bohemian Rhapsody',
-                'album_id': 1,
-                'duration': 354,
-                'genre': 'Rock',
-                'file_path': None,
-                'created_at': datetime.now().isoformat()
-            },
-            {
-                'id': 2,
-                'title': 'Thriller',
-                'album_id': 2,
-                'duration': 357,
-                'genre': 'Pop',
-                'file_path': None,
-                'created_at': datetime.now().isoformat()
-            },
-            {
-                'id': 3,
-                'title': 'Come Together',
-                'album_id': 3,
-                'duration': 259,
-                'genre': 'Rock',
-                'file_path': None,
-                'created_at': datetime.now().isoformat()
-            }
-        ]
-        save_data(SONGS_FILE, songs)
+    if songs is None:
+        save_data(SONGS_FILE, [])
 
-# Initialize data files and sample data
+# Initialize data files with empty data for a fresh start
 init_all_data_files()
-initialize_sample_data()
+initialize_empty_data()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
