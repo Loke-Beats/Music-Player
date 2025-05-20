@@ -1,0 +1,235 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Search Results - Music Player{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1>Search Results for "{{ query }}"</h1>
+    </div>
+</div>
+
+<!-- Songs Results -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">Songs</h3>
+            </div>
+            <div class="card-body">
+                {% if songs %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Artist</th>
+                                <th>Album</th>
+                                <th>Duration</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for song in songs %}
+                            <tr>
+                                <td>{{ song.title }}</td>
+                                <td>{{ song.album.artist.name }}</td>
+                                <td>{{ song.album.title }}</td>
+                                <td>{{ song.duration_formatted }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-success play-song" 
+                                                data-song-id="{{ song.song_id }}" 
+                                                data-song-title="{{ song.title }}" 
+                                                data-song-artist="{{ song.album.artist.name }}">
+                                            <i class="fas fa-play"></i>
+                                        </button>
+                                        <a href="{% url 'song_detail' song.song_id %}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-info"></i>
+                                        </a>
+                                        {% if user.is_authenticated %}
+                                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" 
+                                                data-bs-target="#addToPlaylistModal" data-song-id="{{ song.song_id }}">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No songs matching your search.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Albums Results -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">Albums</h3>
+            </div>
+            <div class="card-body">
+                {% if albums %}
+                <div class="row">
+                    {% for album in albums %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ album.title }}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">{{ album.artist.name }}</h6>
+                                <p class="card-text">
+                                    <span class="badge bg-secondary">{{ album.genre }}</span><br>
+                                    <small>Released: {{ album.release_date|date:"F j, Y" }}</small>
+                                </p>
+                            </div>
+                            <div class="card-footer">
+                                <a href="{% url 'album_detail' album.album_id %}" class="btn btn-outline-secondary btn-sm">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">No albums matching your search.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Artists Results -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">Artists</h3>
+            </div>
+            <div class="card-body">
+                {% if artists %}
+                <div class="row">
+                    {% for artist in artists %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ artist.name }}</h5>
+                                <p class="card-text">
+                                    <span class="badge bg-secondary">{{ artist.genre }}</span><br>
+                                    <small>{{ artist.albums.count }} album{{ artist.albums.count|pluralize }}</small>
+                                </p>
+                                <p class="card-text">{{ artist.biography|truncatechars:100 }}</p>
+                            </div>
+                            <div class="card-footer">
+                                <a href="{% url 'artist_detail' artist.artist_id %}" class="btn btn-outline-secondary btn-sm">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">No artists matching your search.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add to Playlist Modal -->
+{% if user.is_authenticated %}
+<div class="modal fade" id="addToPlaylistModal" tabindex="-1" aria-labelledby="addToPlaylistModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addToPlaylistModalLabel">Add to Playlist</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addToPlaylistForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="songIdInput" name="song_id" value="">
+                    
+                    <div class="mb-3">
+                        <label for="playlistSelect" class="form-label">Select Playlist</label>
+                        <select class="form-select" id="playlistSelect" name="playlist_id" required>
+                            <option value="">Choose playlist...</option>
+                            {% for playlist in request.user.playlists.all %}
+                            <option value="{{ playlist.playlist_id }}">{{ playlist.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add to Playlist</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set song ID when opening modal
+        document.querySelectorAll('[data-bs-target="#addToPlaylistModal"]').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const songId = this.dataset.songId;
+                document.getElementById('songIdInput').value = songId;
+            });
+        });
+        
+        // Handle form submission
+        document.getElementById('addToPlaylistForm')?.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(this);
+            const params = new URLSearchParams();
+            
+            // Convert FormData to URLSearchParams
+            for (const [key, value] of formData.entries()) {
+                params.append(key, value);
+            }
+            
+            // Use fetch API to make a POST request
+            fetch('{% url "add_song_to_playlist" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: params
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide the modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addToPlaylistModal'));
+                modal.hide();
+                
+                // Show a notification
+                if (data.status === 'success') {
+                    alert(data.message);
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        });
+    });
+</script>
+{% endblock %}

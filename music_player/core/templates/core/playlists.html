@@ -1,0 +1,61 @@
+{% extends 'core/base.html' %}
+
+{% block title %}My Playlists - Music Player{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>My Playlists</h1>
+            <a href="{% url 'playlist_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Create Playlist
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    {% if playlists %}
+    {% for playlist in playlists %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">{{ playlist.title }}</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ playlist.description|default:"No description"|truncatechars:100 }}</p>
+                <div class="d-flex justify-content-between">
+                    <span class="badge bg-secondary">{{ playlist.songs.count }} song{{ playlist.songs.count|pluralize }}</span>
+                    <small class="text-muted">Created: {{ playlist.creation_date|date:"M d, Y" }}</small>
+                </div>
+            </div>
+            <div class="card-footer d-flex justify-content-between">
+                <a href="{% url 'playlist_detail' playlist.playlist_id %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-eye me-1"></i> View
+                </a>
+                <div>
+                    <a href="{% url 'playlist_update' playlist.playlist_id %}" class="btn btn-sm btn-outline-primary me-1">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <form method="post" action="{% url 'playlist_delete' playlist.playlist_id %}" class="d-inline" 
+                          onsubmit="return confirm('Are you sure you want to delete this playlist?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <p>You haven't created any playlists yet.</p>
+            <a href="{% url 'playlist_create' %}" class="btn btn-primary mt-2">Create Your First Playlist</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

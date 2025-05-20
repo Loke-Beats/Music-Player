@@ -1,0 +1,207 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ song.title }} - Music Player{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'songs' %}">Songs</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ song.title }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="mb-0">{{ song.title }}</h2>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 150px;">Artist</th>
+                                    <td>
+                                        <a href="{% url 'artist_detail' song.album.artist.artist_id %}">
+                                            {{ song.album.artist.name }}
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Album</th>
+                                    <td>
+                                        <a href="{% url 'album_detail' song.album.album_id %}">
+                                            {{ song.album.title }}
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Duration</th>
+                                    <td>{{ song.duration_formatted }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Genre</th>
+                                    <td>{{ song.genre }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Release Date</th>
+                                    <td>{{ song.release_date|date:"F j, Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>DRM Type</th>
+                                    <td>{{ song.get_drm_type_display }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <button class="btn btn-primary play-song" 
+                        data-song-id="{{ song.song_id }}" 
+                        data-song-title="{{ song.title }}" 
+                        data-song-artist="{{ song.album.artist.name }}">
+                    <i class="fas fa-play me-1"></i> Play Now
+                </button>
+                {% if user.is_authenticated %}
+                <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addToPlaylistModal">
+                    <i class="fas fa-plus me-1"></i> Add to Playlist
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">From Album</h5>
+            </div>
+            <div class="card-body">
+                <h5>{{ song.album.title }}</h5>
+                <p>by {{ song.album.artist.name }}</p>
+                <p>Genre: {{ song.album.genre }}</p>
+                <p>Released: {{ song.album.release_date|date:"F j, Y" }}</p>
+                <a href="{% url 'album_detail' song.album.album_id %}" class="btn btn-outline-secondary btn-sm">
+                    View Album
+                </a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">More by {{ song.album.artist.name }}</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for other_song in song.album.songs.all|slice:":5" %}
+                    {% if other_song.song_id != song.song_id %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <a href="{% url 'song_detail' other_song.song_id %}">{{ other_song.title }}</a>
+                        <button class="btn btn-sm btn-success play-song" 
+                                data-song-id="{{ other_song.song_id }}" 
+                                data-song-title="{{ other_song.title }}" 
+                                data-song-artist="{{ other_song.album.artist.name }}">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                </ul>
+                <div class="mt-3">
+                    <a href="{% url 'artist_detail' song.album.artist.artist_id %}" class="btn btn-outline-secondary btn-sm">
+                        View Artist
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add to Playlist Modal -->
+{% if user.is_authenticated %}
+<div class="modal fade" id="addToPlaylistModal" tabindex="-1" aria-labelledby="addToPlaylistModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addToPlaylistModalLabel">Add "{{ song.title }}" to Playlist</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addToPlaylistForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="song_id" value="{{ song.song_id }}">
+                    
+                    <div class="mb-3">
+                        <label for="playlistSelect" class="form-label">Select Playlist</label>
+                        <select class="form-select" id="playlistSelect" name="playlist_id" required>
+                            <option value="">Choose playlist...</option>
+                            {% for playlist in playlists %}
+                            <option value="{{ playlist.playlist_id }}">{{ playlist.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add to Playlist</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle form submission for adding to playlist
+        document.getElementById('addToPlaylistForm')?.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(this);
+            const params = new URLSearchParams();
+            
+            // Convert FormData to URLSearchParams
+            for (const [key, value] of formData.entries()) {
+                params.append(key, value);
+            }
+            
+            // Use fetch API to make a POST request
+            fetch('{% url "add_song_to_playlist" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: params
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide the modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addToPlaylistModal'));
+                modal.hide();
+                
+                // Show a notification
+                if (data.status === 'success') {
+                    alert(data.message);
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        });
+    });
+</script>
+{% endblock %}

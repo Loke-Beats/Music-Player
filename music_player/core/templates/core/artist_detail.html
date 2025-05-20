@@ -1,0 +1,186 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ artist.name }} - Music Player{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'artists' %}">Artists</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ artist.name }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="card-title mb-3">{{ artist.name }}</h1>
+                <p class="card-text">
+                    <span class="badge bg-secondary">{{ artist.genre }}</span>
+                </p>
+                <div class="row">
+                    <div class="col-md-8">
+                        <h5>Biography</h5>
+                        <p>{{ artist.biography|default:"No biography available." }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Statistics</h5>
+                                <ul class="list-unstyled">
+                                    <li><strong>Albums:</strong> {{ artist.albums.count }}</li>
+                                    {% with total_songs=0 %}
+                                        {% for album in artist.albums.all %}
+                                            {% with total_songs=total_songs|add:album.songs.count %}{% endwith %}
+                                        {% endfor %}
+                                        <li><strong>Songs:</strong> {{ total_songs }}</li>
+                                    {% endwith %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Albums -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2>Albums</h2>
+    </div>
+    
+    {% if artist.albums.exists %}
+    {% for album in artist.albums.all %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ album.title }}</h5>
+                <p class="card-text">
+                    <span class="badge bg-secondary">{{ album.genre }}</span><br>
+                    <small>Released: {{ album.release_date|date:"F j, Y" }}</small><br>
+                    <small>{{ album.songs.count }} song{{ album.songs.count|pluralize }}</small>
+                </p>
+            </div>
+            <div class="card-footer d-flex justify-content-between">
+                <a href="{% url 'album_detail' album.album_id %}" class="btn btn-outline-secondary">
+                    View Details
+                </a>
+                <button class="btn btn-primary play-album" data-album-id="{{ album.album_id }}">
+                    <i class="fas fa-play"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <p>No albums available for this artist.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Popular Songs -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">Popular Songs</h3>
+            </div>
+            <div class="card-body">
+                {% with songs=artist.albums.first.songs.all|slice:":10" %}
+                {% if songs %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Album</th>
+                                <th>Duration</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for song in songs %}
+                            <tr>
+                                <td>{{ song.title }}</td>
+                                <td>{{ song.album.title }}</td>
+                                <td>{{ song.duration_formatted }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-success play-song" 
+                                                data-song-id="{{ song.song_id }}" 
+                                                data-song-title="{{ song.title }}" 
+                                                data-song-artist="{{ artist.name }}">
+                                            <i class="fas fa-play"></i>
+                                        </button>
+                                        <a href="{% url 'song_detail' song.song_id %}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-info"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <p>No songs available for this artist.</p>
+                </div>
+                {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle play album button
+        document.querySelectorAll('.play-album').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const albumId = this.dataset.albumId;
+                
+                // Fetch songs for this album
+                fetch(`/albums/${albumId}/`)
+                    .then(response => response.text())
+                    .then(html => {
+                        // Create a temporary element to parse the HTML
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        
+                        // Extract song information
+                        const songs = [];
+                        doc.querySelectorAll('.play-song').forEach(function(songButton) {
+                            songs.push({
+                                id: songButton.dataset.songId,
+                                title: songButton.dataset.songTitle,
+                                artist: songButton.dataset.songArtist
+                            });
+                        });
+                        
+                        if (songs.length > 0) {
+                            // Use a custom event to pass the song queue to the player
+                            const event = new CustomEvent('playQueue', { detail: songs });
+                            document.dispatchEvent(event);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while loading album songs. Please try again.');
+                    });
+            });
+        });
+    });
+</script>
+{% endblock %}

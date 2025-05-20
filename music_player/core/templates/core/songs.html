@@ -1,0 +1,159 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Songs - Music Player{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1>All Songs</h1>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Song Library</h5>
+                    {% if user.is_authenticated %}
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="playlistDropdown" 
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-plus me-1"></i> Add to Playlist
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end" id="playlistDropdownMenu" aria-labelledby="playlistDropdown">
+                            <form id="addToPlaylistForm">
+                                {% csrf_token %}
+                                <input type="hidden" id="songIdInput" name="song_id" value="">
+                                <div class="px-3 py-2">
+                                    <select class="form-select form-select-sm" id="playlistSelect" name="playlist_id" required>
+                                        <option value="">Select Playlist</option>
+                                        {% for playlist in request.user.playlists.all %}
+                                        <option value="{{ playlist.playlist_id }}">{{ playlist.title }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-primary w-100 mt-2">Add</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if songs %}
+                <div class="table-responsive">
+                    <table class="table table-hover" id="songsTable">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Artist</th>
+                                <th>Album</th>
+                                <th>Duration</th>
+                                <th>Genre</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for song in songs %}
+                            <tr>
+                                <td>{{ song.title }}</td>
+                                <td>{{ song.album.artist.name }}</td>
+                                <td>{{ song.album.title }}</td>
+                                <td>{{ song.duration_formatted }}</td>
+                                <td>{{ song.genre }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-success play-song" 
+                                                data-song-id="{{ song.song_id }}" 
+                                                data-song-title="{{ song.title }}" 
+                                                data-song-artist="{{ song.album.artist.name }}">
+                                            <i class="fas fa-play"></i>
+                                        </button>
+                                        <a href="{% url 'song_detail' song.song_id %}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-info"></i>
+                                        </a>
+                                        {% if user.is_authenticated %}
+                                        <button class="btn btn-sm btn-outline-primary add-to-playlist" data-song-id="{{ song.song_id }}">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <p>No songs available in the library.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle add to playlist button clicks
+        document.querySelectorAll('.add-to-playlist').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const songId = this.dataset.songId;
+                document.getElementById('songIdInput').value = songId;
+                
+                // Ensure dropdown stays open when clicking the button
+                event.stopPropagation();
+                
+                // Show the dropdown
+                const dropdown = new bootstrap.Dropdown(document.getElementById('playlistDropdown'));
+                dropdown.show();
+            });
+        });
+        
+        // Handle form submission
+        document.getElementById('addToPlaylistForm')?.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(this);
+            const params = new URLSearchParams();
+            
+            // Convert FormData to URLSearchParams
+            for (const [key, value] of formData.entries()) {
+                params.append(key, value);
+            }
+            
+            // Use fetch API to make a POST request
+            fetch('{% url "add_song_to_playlist" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: params
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide the dropdown
+                const dropdownMenu = document.getElementById('playlistDropdownMenu');
+                const dropdown = bootstrap.Dropdown.getInstance(document.getElementById('playlistDropdown'));
+                dropdown.hide();
+                
+                // Show a notification
+                if (data.status === 'success') {
+                    alert(data.message);
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Artists - Music Player{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1>All Artists</h1>
+    </div>
+</div>
+
+<div class="row">
+    {% if artists %}
+    {% for artist in artists %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ artist.name }}</h5>
+                <p class="card-text">
+                    <span class="badge bg-secondary">{{ artist.genre }}</span><br>
+                    <small>{{ artist.albums.count }} album{{ artist.albums.count|pluralize }}</small>
+                </p>
+                <p class="card-text">{{ artist.biography|truncatechars:150 }}</p>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'artist_detail' artist.artist_id %}" class="btn btn-outline-secondary">
+                    View Details
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <p>No artists available in the library.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

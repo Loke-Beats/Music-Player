@@ -1,0 +1,93 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Music Player - Home{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="p-5 mb-4 bg-dark rounded-3 text-center">
+            <div class="container-fluid py-5">
+                <h1 class="display-5 fw-bold">Welcome to Music Player</h1>
+                <p class="fs-4">Discover and enjoy your favorite music in one place</p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="{% url 'songs' %}" class="btn btn-primary btn-lg px-4 me-md-2">Browse Songs</a>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'playlist_create' %}" class="btn btn-outline-light btn-lg px-4">Create Playlist</a>
+                    {% else %}
+                    <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg px-4">Sign Up</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Songs -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-4">Recently Added Songs</h2>
+    </div>
+    
+    {% if recent_songs %}
+    {% for song in recent_songs %}
+    <div class="col-md-3 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ song.title }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">{{ song.album.artist.name }}</h6>
+                <p class="card-text">
+                    <small>Album: {{ song.album.title }}</small><br>
+                    <small>Duration: {{ song.duration_formatted }}</small><br>
+                    <small>Genre: {{ song.genre }}</small>
+                </p>
+            </div>
+            <div class="card-footer d-flex justify-content-between">
+                <button class="btn btn-sm btn-primary play-song" 
+                        data-song-id="{{ song.song_id }}" 
+                        data-song-title="{{ song.title }}" 
+                        data-song-artist="{{ song.album.artist.name }}">
+                    <i class="fas fa-play me-1"></i> Play
+                </button>
+                <a href="{% url 'song_detail' song.song_id %}" class="btn btn-sm btn-outline-secondary">Details</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="col-12">
+        <p class="text-muted">No songs available yet.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- User's Playlists (if logged in) -->
+{% if user.is_authenticated and playlists %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-4">Your Playlists</h2>
+    </div>
+    
+    {% for playlist in playlists %}
+    <div class="col-md-3 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ playlist.title }}</h5>
+                <p class="card-text">
+                    {{ playlist.description|truncatechars:100 }}
+                </p>
+                <p class="card-text">
+                    <small class="text-muted">
+                        {{ playlist.songs.count }} song{{ playlist.songs.count|pluralize }}<br>
+                        Created: {{ playlist.creation_date|date:"M d, Y" }}
+                    </small>
+                </p>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'playlist_detail' playlist.playlist_id %}" class="btn btn-sm btn-outline-secondary">View Details</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
