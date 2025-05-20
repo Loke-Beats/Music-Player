@@ -1,1 +1,1 @@
-[{"id": 1, "username": "admin", "password": "scrypt:32768:8:1$AKv3uTv3jcWJUbMc$a297f26d2043fecd2df69916b0275484c9e464b87e603981df1eb30fa11fda7af33cd81bfccceb849787a5bab76802716d121f40547c8dee19d79f2f842de6a8", "email": "admin@example.com", "is_admin": true}]
+[{"id": 1, "username": "admin", "password": "scrypt:32768:8:1$qEMUDHNY4q3ReXJf$10b758fa67e491fa2707d90c3677419bcfdabf11fe1b5ccd2b47532f79054499ba711d1afb1d81a2976ca67bf9b894732d6d17d2639b8d97587f0e444590f12a", "email": "admin@example.com", "is_admin": true}]

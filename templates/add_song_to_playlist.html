@@ -51,7 +51,7 @@
                                 {% endif %}
                             </td>
                             <td>{{ song.genre }}</td>
-                            <td>{{ format_duration(song.duration) }}</td>
+                            <td>{{ song.duration // 60 }}:{{ (song.duration % 60)|string|zfill(2) }}</td>
                             <td>
                                 {% if song.file_path %}
                                 <button type="button" class="btn btn-sm btn-outline-primary rounded-circle play-song-btn" 
